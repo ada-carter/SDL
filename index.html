@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Self-Directed Learning Reflection</title>
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a9e0d4c4b5.js" crossorigin="anonymous"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app" class="viewport">
+    <!-- Top progress / timer -->
+    <header class="topbar glass">
+      <nav id="stepper" class="stepper">
+        <span class="step active" data-step="0"></span>
+        <span class="step" data-step="1"></span>
+        <span class="step" data-step="2"></span>
+        <span class="step" data-step="3"></span>
+        <span class="step" data-step="4"></span>
+        <span class="step" data-step="5"></span>
+        <span class="step" data-step="6"></span>
+        <span class="step" data-step="7"></span>
+        <span class="step" data-step="8"></span>
+        <span class="step" data-step="9"></span>
+      </nav>
+      <div class="timer">
+        <i class="fas fa-hourglass-half"></i>
+        <span id="timeLeft">15:00</span>
+      </div>
+    </header>
+
+    <!-- CARDS -->
+    <section id="cards">
+
+      <!-- STEP 0 · INTRO -->
+      <article class="card active" data-step="0">
+        <h1>Self-Directed Learning</h1>
+        <p class="lead">
+          Most adult learning already happens outside classrooms. <br />
+          Over the next <strong>10-15 minutes</strong> you’ll trace one of your own learning journeys
+          and see how much <em>initiative</em>, <em>resource-hunting</em> and <em>self-assessment</em> it actually involved.
+        </p>
+        <button class="btn primary" id="startBtn">
+          Let’s begin <i class="fas fa-arrow-right"></i>
+        </button>
+      </article>
+
+      <!-- STEP 1 · Question 1: Goal -->
+      <article class="card" data-step="1">
+        <h2>1 · What was the project or goal?</h2>
+        <p class="subtitle">Think of a specific project or goal you tackled in the last year. Why did it matter to you?</p>
+        <textarea id="answer1"></textarea>
+        <p class="share-prompt">Turn to your neighbor and share your project or goal.</p>
+        <div class="btn-row">
+          <button class="btn secondary" id="back1"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn primary" id="next1">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </article>
+
+      <!-- STEP 2 · Question 2: Diagnose -->
+      <article class="card" data-step="2">
+        <h2>2 · How did you decide what to learn?</h2>
+        <p class="subtitle">Describe how you diagnosed your learning needs and set your plan.</p>
+        <textarea id="answer2"></textarea>
+        <p class="share-prompt">Discuss with the person next to you how you identified your learning needs.</p>
+        <div class="btn-row">
+          <button class="btn secondary" id="back2"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn primary" id="next2">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </article>
+
+      <!-- STEP 3 · Question 3: Strategy -->
+      <article class="card" data-step="3">
+        <h2>3 · What strategies did you use?</h2>
+        <p class="subtitle">Explain the methods, tools, or approaches you tried.</p>
+        <textarea id="answer3"></textarea>
+        <p class="share-prompt">Share one strategy you found most effective.</p>
+        <div class="btn-row">
+          <button class="btn secondary" id="back3"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn primary" id="next3">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </article>
+
+      <!-- STEP 4 · Question 4: Resources -->
+      <article class="card" data-step="4">
+        <h2>4 · Who or what helped?</h2>
+        <p class="subtitle">Add the people, books, videos, or other resources that supported your learning journey.</p>
+        
+        <div id="resourceCards" class="resource-cards"></div>
+        
+        <button class="btn primary" id="addResourceBtn">
+          <i class="fas fa-plus"></i> Add Resource
+        </button>
+
+        <!-- Resource Form -->
+        <div id="resourceForm" class="resource-form">
+          <h3>Add Learning Resource</h3>
+          <select id="resourceType" required>
+            <option value="">Select type...</option>
+          </select>
+          <input type="text" id="resourceName" placeholder="Name" required>
+          <textarea id="resourceDescription" placeholder="How did this help you learn?" required></textarea>
+          
+          <div class="form-buttons">
+            <button class="btn secondary" id="cancelResourceBtn">Cancel</button>
+            <button class="btn primary" id="saveResourceBtn">Save</button>
+          </div>
+        </div>
+
+        <textarea id="answer4" hidden></textarea>
+        
+        <p class="share-prompt">Share your most valuable resource with your neighbor.</p>
+        <div class="btn-row">
+          <button class="btn secondary" id="back4"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn primary" id="next4">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </article>
+
+      <!-- STEP 5 · Question 5: Circumstance -->
+      <article class="card" data-step="5">
+        <h2>5 · Any surprises that changed your approach?</h2>
+        <p class="subtitle">Describe unexpected challenges or insights you encountered.</p>
+        <textarea id="answer5"></textarea>
+        <p class="share-prompt">Discuss with your partner how you adapted.</p>
+        <div class="btn-row">
+          <button class="btn secondary" id="back5"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn primary" id="next5">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </article>
+
+      <!-- STEP 6 · Question 6: Evaluation -->
+      <article class="card" data-step="6">
+        <h2>6 · How did you track progress & know you’d succeeded?</h2>
+        <p class="subtitle">Explain how you measured and confirmed your success.</p>
+        <textarea id="answer6"></textarea>
+        <p class="share-prompt">Share one metric or outcome you tracked.</p>
+        <div class="btn-row">
+          <button class="btn secondary" id="back6"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn primary" id="next6">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </article>
+
+      <!-- STEP 7 · Question 7: Responsibility -->
+      <article class="card" data-step="7">
+        <h2>7 · Did you feel in charge the whole time?</h2>
+        <p class="subtitle">Adjust the slider to indicate how much responsibility you held.</p>
+        <div class="slider-container">
+          <div class="labels">
+            <span>No – mostly others</span>
+            <span>Some shared responsibility</span>
+            <span>I was in full control</span>
+          </div>
+          <input type="range" id="answer7" min="0" max="100" step="any" value="50">
+          <p id="respLabel">50%</p>
+        </div>
+        <p class="share-prompt">Discuss whether you felt in control of your learning.</p>
+        <div class="btn-row">
+          <button class="btn secondary" id="back7"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn primary" id="submitAnswers">Finish & Continue <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </article>
+
+      <!-- STEP 8 · Full-Page Report -->
+      <article class="card" data-step="8">
+        <div id="sdlReport" class="sdl-report"></div>
+        <div class="report-buttons">
+          <button class="btn secondary" id="copyReportBtn"><i class="fas fa-copy"></i> Copy Report</button>
+          <button class="btn primary" id="downloadReportBtn"><i class="fas fa-download"></i> Download Summary as PNG</button>
+        </div>
+      </article>
+
+      <!-- STEP 9 · WRAP-UP -->
+      <article class="card" data-step="9">
+        <h2>9 · Key Take-aways</h2>
+        <ul class="takeaways">
+          <li><i class="fas fa-check-circle"></i> You already practice SDL when you take initiative, plan and self-evaluate.</li>
+          <li><i class="fas fa-check-circle"></i> SDL thrives on using <strong>resources &amp; people</strong> – it’s not a solo act.</li>
+          <li><i class="fas fa-check-circle"></i> Context + circumstance shape every learning path; be ready to adapt.</li>
+        </ul>
+
+        <p class="highlight">Watch for SDL moments in everyday life and leverage them for intentional growth!</p>
+
+        <button class="btn primary" id="restartBtn">
+          Start again <i class="fas fa-redo"></i>
+        </button>
+      </article>
+
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <a href="https://ada-carter.github.io/dev-site/projects.html" target="_blank" rel="noreferrer">
+        Created with 🩷 by Ada <i class="fas fa-external-link-alt"></i>
+      </a>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="script.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="resource-cards.js"></script>
+</body>
+</html>
