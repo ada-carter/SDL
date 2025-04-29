@@ -32,7 +32,7 @@
       </nav>
       <div class="timer">
         <i class="fas fa-hourglass-half"></i>
-        <span id="timeLeft">15:00</span>
+        <span id="timeLeft">05:00</span>
       </div>
     </header>
 
@@ -44,7 +44,7 @@
         <h1>Self-Directed Learning</h1>
         <p class="lead">
           Most adult learning already happens outside classrooms. <br />
-          Over the next <strong>10-15 minutes</strong> you’ll trace one of your own learning journeys
+          Over the next <strong>5 minutes</strong> you'll trace one of your own learning journeys
           and see how much <em>initiative</em>, <em>resource-hunting</em> and <em>self-assessment</em> it actually involved.
         </p>
         <button class="btn primary" id="startBtn">
@@ -173,6 +173,7 @@
         <div class="report-buttons">
           <button class="btn secondary" id="copyReportBtn"><i class="fas fa-copy"></i> Copy Report</button>
           <button class="btn primary" id="downloadReportBtn"><i class="fas fa-download"></i> Download Summary as PNG</button>
+          <button class="btn secondary" id="backFromReportBtn"><i class="fas fa-arrow-left"></i> Back</button>
         </div>
       </article>
 
@@ -187,9 +188,14 @@
 
         <p class="highlight">Watch for SDL moments in everyday life and leverage them for intentional growth!</p>
 
-        <button class="btn primary" id="restartBtn">
-          Start again <i class="fas fa-redo"></i>
-        </button>
+        <div class="btn-row">
+          <button class="btn secondary" id="backToReportBtn">
+            <i class="fas fa-arrow-left"></i> Back to Report
+          </button>
+          <button class="btn primary" id="restartBtn">
+            Start again <i class="fas fa-redo"></i>
+          </button>
+        </div>
       </article>
 
     </section>

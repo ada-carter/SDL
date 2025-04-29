@@ -11,6 +11,14 @@ const RESOURCE_TYPES = {
   OTHER: { icon: 'fa-star', label: 'Other' }
 };
 
+// Add a mobile detection utility function
+function isMobileDevice() {
+  return window.innerWidth <= 768 || 
+         navigator.maxTouchPoints > 0 || 
+         navigator.msMaxTouchPoints > 0 ||
+         window.matchMedia("(pointer: coarse)").matches;
+}
+
 class ResourceManager {
   constructor() {
     this.resources = [];
@@ -19,6 +27,21 @@ class ResourceManager {
     
     // Try to load resources from localStorage
     this.loadResources();
+    
+    // Check if we're on mobile and adjust the layout if needed
+    this.isMobile = isMobileDevice();
+    window.addEventListener('resize', () => {
+      const wasMobile = this.isMobile;
+      this.isMobile = isMobileDevice();
+      
+      // Only update if mobile state changed
+      if (wasMobile !== this.isMobile) {
+        this.adjustForMobile();
+      }
+    });
+    
+    // Initial mobile adjustment
+    this.adjustForMobile();
   }
 
   setupListeners() {
@@ -31,6 +54,13 @@ class ResourceManager {
     document.querySelector('#resourceForm').addEventListener('click', (e) => {
       e.stopPropagation();
     });
+  }
+
+  reinitialize() {
+    this.resources = [];
+    this.container.innerHTML = '';
+    this.hideAddForm();
+    this.loadResources();
   }
 
   showAddForm() {
@@ -91,10 +121,13 @@ class ResourceManager {
     card.className = 'resource-card glass';
     card.dataset.id = id;
     
+    // Create a more compact layout for mobile
+    const isMobileView = this.isMobile;
+    
     card.innerHTML = `
       <i class="fas ${icon} resource-icon"></i>
       <div class="resource-content">
-        <h3>${name}</h3>
+        <h3>${name}${isMobileView ? ` <small>(${RESOURCE_TYPES[type]?.label || 'Resource'})</small>` : ''}</h3>
         <p>${description}</p>
       </div>
       <button class="remove-resource" aria-label="Remove resource">
@@ -135,6 +168,22 @@ class ResourceManager {
       }
     } catch (e) {
       console.error('Error loading resources:', e);
+    }
+  }
+
+  // Add a method to adjust the layout for mobile devices
+  adjustForMobile() {
+    if (this.isMobile) {
+      // Clear and redraw all cards optimized for mobile
+      const resourcesCopy = [...this.resources];
+      this.container.innerHTML = '';
+      resourcesCopy.forEach(resource => this.renderCard(resource));
+      
+      // Add mobile-specific class to container
+      this.container.classList.add('mobile-layout');
+    } else {
+      // Remove mobile-specific styling
+      this.container.classList.remove('mobile-layout');
     }
   }
 }

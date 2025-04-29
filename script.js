@@ -3,9 +3,39 @@ const qs = s => document.querySelector(s);
 const qsa = s => [...document.querySelectorAll(s)];
 let step = 0;
 const STEPS = 10;
-const DURATION = 15 * 60; // 15 minutes in seconds
+const DURATION = 5 * 60; // 5 minutes in seconds
 let timeLeft = DURATION;
 let timerId;
+let isMobile = false;
+
+// Check if device is mobile
+function checkMobile() {
+  isMobile = window.innerWidth <= 768 || 
+             navigator.maxTouchPoints > 0 || 
+             navigator.msMaxTouchPoints > 0 ||
+             window.matchMedia("(pointer: coarse)").matches;
+  return isMobile;
+}
+
+// Add direct button selectors at the top level
+const copyReportBtn = () => document.querySelector('#copyReportBtn');
+const downloadReportBtn = () => document.querySelector('#downloadReportBtn');
+const editReportBtn = () => document.querySelector('#editReportBtn');
+const restartFromReportBtn = () => document.querySelector('#restartFromReportBtn');
+
+function updateSliderFill(el) {
+  const pct = el.value;
+  el.style.background = `linear-gradient(to right, #6a68d5 ${pct}%, #e0e0e0 ${pct}%)`;
+  
+  // Don't use transform for tooltip on mobile - handled by CSS instead
+  if (!checkMobile()) {
+    // Use requestAnimationFrame for smooth tooltip updates
+    requestAnimationFrame(() => {
+      const thumbPosition = (pct / 100) * (el.offsetWidth - 16) + 8;
+      qs('#respLabel').style.transform = `translateX(${thumbPosition}px) translateX(-50%)`;
+    });
+  }
+}
 
 /* ---------- Init ---------- */
 window.addEventListener('DOMContentLoaded', () => {
@@ -26,15 +56,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Bind responsibility slider label update (rounded to whole number)
   const slider = qs('#answer7');
   const respLabel = qs('#respLabel');
-  function updateSliderFill(el) {
-    const pct = el.value;
-    el.style.background = `linear-gradient(to right, #6a68d5 ${pct}%, #e0e0e0 ${pct}%)`;
-    // Use requestAnimationFrame for smooth tooltip updates
-    requestAnimationFrame(() => {
-      const thumbPosition = (pct / 100) * (el.offsetWidth - 16) + 8;
-      respLabel.style.transform = `translateX(${thumbPosition}px) translateX(-50%)`;
-    });
-  }
+  
   slider.oninput = () => {
     const pct = Math.round(slider.value);
     respLabel.textContent = `${pct}%`;
@@ -52,7 +74,7 @@ window.addEventListener('DOMContentLoaded', () => {
       goal: qs('#answer1').value,
       diagnose: qs('#answer2').value,
       strategy: qs('#answer3').value,
-      resources: qs('#answer4').value,
+      resources: window.resourceManager ? window.resourceManager.resources : [],
       circumstance: qs('#answer5').value,
       evaluation: qs('#answer6').value,
       responsibility: qs('#respLabel').textContent,
@@ -62,10 +84,13 @@ window.addEventListener('DOMContentLoaded', () => {
     renderSDLReport(); // Render report when moving to step 8
   };
 
-  // Summary buttons
-  qs('#copyBtn').onclick = copySummary;
-  qs('#editBtn').onclick = () => prevStep();
-  qs('#next8').onclick = () => nextStep();
+  // Bind summary navigation buttons if present
+  const copyBtn = qs('#copyBtn');
+  if (copyBtn) copyBtn.onclick = copySummary;
+  const editBtn = qs('#editBtn');
+  if (editBtn) editBtn.onclick = () => prevStep();
+  const next8Btn = qs('#next8');
+  if (next8Btn) next8Btn.onclick = () => nextStep();
 
   // Restart
   qs('#restartBtn').onclick = () => {
@@ -74,15 +99,42 @@ window.addEventListener('DOMContentLoaded', () => {
     updateUI();
     resetTimer();
   };
+  
+  // Back to Report button on final step
+  const backToReportBtn = qs('#backToReportBtn');
+  if (backToReportBtn) backToReportBtn.onclick = () => {
+    step = 8; // Go back to the report step
+    updateUI();
+  };
+
+  // Bind report buttons directly
+  // Copy Report button
+  const copyReportButton = copyReportBtn();
+  if (copyReportButton) {
+    copyReportButton.addEventListener('click', copySDLReport);
+  }
+  
+  // Download Report button
+  const downloadReportButton = downloadReportBtn();
+  if (downloadReportButton) {
+    downloadReportButton.addEventListener('click', downloadSDLReport);
+  }
+  
+  // Back from Report button
+  const backFromReportBtn = qs('#backFromReportBtn');
+  if (backFromReportBtn) {
+    backFromReportBtn.addEventListener('click', () => {
+      step = 7; // Go back to previous question (responsibility slider)
+      updateUI();
+    });
+  }
 
   // Load saved answers if present
-  if (localStorage.getItem('sdlForm')) buildSummary();
-
+  // if (localStorage.getItem('sdlForm')) buildSummary(); // disabled to avoid errors
+  
   // Render SDL report on step 8
   if (qs('#sdlReport')) {
     renderSDLReport();
-    qs('#copyReportBtn').onclick = copySDLReport;
-    qs('#downloadReportBtn').onclick = downloadSDLReport;
   }
 });
 
@@ -151,20 +203,24 @@ function copySummary() {
 // SDL Report rendering for step 8
 function renderSDLReport() {
   const data = JSON.parse(localStorage.getItem('sdlForm') || '{}');
-  const resourcesArr = (data.resources || '').split(/\n|\r/).filter(Boolean);
   let html = `<div class="sdl-report-glass">
     <h2 class="sdl-report-title">Your Self-Directed Learning Journey</h2>
     <div class="sdl-report-section"><span class="sdl-label">Goal:</span><div class="sdl-value">${data.goal || '<em>Not provided</em>'}</div></div>
     <div class="sdl-report-section"><span class="sdl-label">Diagnosing What to Learn:</span><div class="sdl-value">${data.diagnose || '<em>Not provided</em>'}</div></div>
     <div class="sdl-report-section"><span class="sdl-label">Strategies Used:</span><div class="sdl-value">${data.strategy || '<em>Not provided</em>'}</div></div>
     <div class="sdl-report-section"><span class="sdl-label">Key Resources:</span>`;
-  if (resourcesArr.length > 0) {
+  
+  if (Array.isArray(data.resources) && data.resources.length > 0) {
     html += '<ul class="sdl-report-resources-list">';
-    resourcesArr.forEach(r => html += `<li>${r}</li>`);
+    data.resources.forEach(resource => {
+      const resourceType = RESOURCE_TYPES[resource.type]?.label || 'Resource';
+      html += `<li>${resource.name} (${resourceType}): ${resource.description}</li>`;
+    });
     html += '</ul>';
   } else {
     html += '<div class="sdl-value">None listed</div>';
   }
+  
   html += `</div>
     <div class="sdl-report-section"><span class="sdl-label">Surprises & Adaptations:</span><div class="sdl-value">${data.circumstance || '<em>Not provided</em>'}</div></div>
     <div class="sdl-report-section"><span class="sdl-label">How You Knew You Succeeded:</span><div class="sdl-value">${data.evaluation || '<em>Not provided</em>'}</div></div>
@@ -182,10 +238,92 @@ function copySDLReport() {
 
 function downloadSDLReport() {
   const el = qs('#sdlReport');
-  html2canvas(el).then(canvas => {
-    const link = document.createElement('a');
-    link.download = 'sdl-summary.png';
-    link.href = canvas.toDataURL();
-    link.click();
-  });
+  
+  // Show loading indicator
+  const downloadBtn = qs('#downloadReportBtn');
+  const originalBtnText = downloadBtn.innerHTML;
+  downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+  
+  // Create a temporary container with proper styling for export
+  const exportContainer = document.createElement('div');
+  exportContainer.className = 'export-container';
+  exportContainer.style.width = `${Math.min(el.offsetWidth + 40, 800)}px`;
+  exportContainer.style.position = 'absolute';
+  exportContainer.style.left = '-9999px';
+  exportContainer.style.top = '-9999px';
+  
+  // Clone the report content
+  const reportClone = el.cloneNode(true);
+  
+  // Apply export-specific styling
+  const glassElement = reportClone.querySelector('.sdl-report-glass');
+  if (glassElement) {
+    glassElement.classList.add('export-ready');
+    
+    // Ensure proper font loading
+    const fontLink = document.createElement('link');
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap';
+    fontLink.rel = 'stylesheet';
+    exportContainer.appendChild(fontLink);
+  }
+  
+  // Add the styled clone to our export container
+  exportContainer.appendChild(reportClone);
+  document.body.appendChild(exportContainer);
+  
+  // Set options for html2canvas
+  const options = {
+    backgroundColor: null, // Allow background to show
+    scale: 2, // Higher quality
+    logging: false,
+    useCORS: true,
+    allowTaint: true,
+    width: exportContainer.offsetWidth,
+    height: exportContainer.offsetHeight,
+    onclone: function(clonedDoc) {
+      // Fix any remaining styling issues in the cloned document
+      const clonedGlass = clonedDoc.querySelector('.export-ready');
+      if (clonedGlass) {
+        // Ensure text color is white
+        Array.from(clonedGlass.querySelectorAll('*')).forEach(el => {
+          el.style.color = 'white';
+        });
+      }
+    }
+  };
+  
+  // Wait a moment for fonts to load before capturing
+  setTimeout(() => {
+    // Capture the properly styled container
+    html2canvas(exportContainer, options).then(canvas => {
+      try {
+        // Create downloadable image
+        const imgData = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = 'sdl-summary.png';
+        link.href = imgData;
+        link.click();
+        
+        // Clean up
+        document.body.removeChild(exportContainer);
+        
+        // Success indicator
+        downloadBtn.innerHTML = '<i class="fas fa-check"></i> Downloaded!';
+        setTimeout(() => {
+          downloadBtn.innerHTML = originalBtnText;
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Error creating image:', error);
+        alert('Sorry, there was an error creating the image.');
+        document.body.removeChild(exportContainer);
+        downloadBtn.innerHTML = originalBtnText;
+      }
+    }).catch(error => {
+      console.error('Error generating canvas:', error);
+      alert('Sorry, there was an error generating the image.');
+      document.body.removeChild(exportContainer);
+      downloadBtn.innerHTML = originalBtnText;
+    });
+  }, 100); // Small delay to ensure fonts and styling are applied
 }
